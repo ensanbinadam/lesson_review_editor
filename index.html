@@ -976,6 +976,7 @@
         <div class="col" style="min-width: 220px">
           <label>معاينة</label>
           <img class="img-preview" alt="" />
+          <button class="danger btn-clear-img" style="margin-top:6px">حذف الصورة</button>
           <div class="dz img-paste" tabindex="0">لصق/إفلات صورة هنا</div>
           <input type="file" accept="image/*" class="img-file" />
         </div>
@@ -1026,6 +1027,7 @@
           <div class="col">
             <label>معاينة</label>
             <img class="ex-img-preview" alt="" />
+            <button class="danger ex-img-clear" style="margin-top:6px">حذف الصورة</button>
           </div>
         </div>
 
@@ -1057,6 +1059,9 @@
             <input type="text" class="q-img-url" placeholder="رابط صورة" />
             <div class="dz q-img-paste" tabindex="0">لصق/إفلات صورة هنا</div>
             <input type="file" accept="image/*" class="q-img-file" />
+            <label style="margin-top:6px">معاينة</label>
+            <img class="img-preview q-img-preview" alt="" />
+            <button class="danger q-img-clear" style="margin-top:6px">حذف الصورة</button>
           </div>
           <div class="col">
             <label>الإجابة الصحيحة</label>
@@ -1487,7 +1492,7 @@
 
       function attachImageInputs(
         imgObj,
-        { urlInput, fileInput, pasteZone, preview }
+        { urlInput, fileInput, pasteZone, preview, clearBtn }
       ) {
         const refresh = () => {
           if (preview) preview.src = imgObj.data || imgObj.url || "";
@@ -1561,6 +1566,18 @@
           });
         }
 
+        if (clearBtn) {
+          clearBtn.addEventListener("click", () => {
+            imgObj.data = "";
+            imgObj.url = "";
+            if (urlInput) urlInput.value = "";
+            if (fileInput) try { fileInput.value = ""; } catch {}
+            if (preview) preview.src = "";
+            refresh();
+            status("�� ����");
+          });
+        }
+
         refresh();
       }
 
@@ -1577,6 +1594,7 @@
           const url = node.querySelector(".img-url");
           const alt = node.querySelector(".img-alt");
           const prev = node.querySelector(".img-preview");
+          const clr = node.querySelector(".btn-clear-img");
           const file = node.querySelector(".img-file");
           const paste = node.querySelector(".img-paste");
           const del = node.querySelector(".btn-remove");
@@ -1592,6 +1610,7 @@
             fileInput: file,
             pasteZone: paste,
             preview: prev,
+            clearBtn: clr,
           });
 
           del.onclick = () => {
@@ -1623,6 +1642,7 @@
           const f = node.querySelector(".ex-img-file");
           const pz = node.querySelector(".ex-img-paste");
           const prev = node.querySelector(".ex-img-preview");
+          const clr = node.querySelector(".ex-img-clear");
 
           p.value = ex.prompt || "";
           s.value = ex.solution || "";
@@ -1643,6 +1663,7 @@
             fileInput: f,
             pasteZone: pz,
             preview: prev,
+            clearBtn: clr,
           });
 
           node.querySelector(".btn-remove").onclick = () => {
@@ -1710,6 +1731,8 @@
           const qUrl = node.querySelector(".q-img-url");
           const qFile = node.querySelector(".q-img-file");
           const qPaste = node.querySelector(".q-img-paste");
+          const qPrev = node.querySelector(".q-img-preview");
+          const qClr = node.querySelector(".q-img-clear");
           const qCorrect = node.querySelector(".q-correct");
           const tbody = node.querySelector(".q-options-body");
 
@@ -1740,7 +1763,8 @@
             urlInput: qUrl,
             fileInput: qFile,
             pasteZone: qPaste,
-            preview: null,
+            preview: qPrev,
+            clearBtn: qClr,
           });
 
           // رسم خيارات السؤال (مع التعليق)
@@ -1774,10 +1798,16 @@
               };
 
               // معاينة الصورة
+              const cell = row.querySelector("td:nth-child(3)");
               const preview = new Image();
               preview.style.cssText =
                 "display:block;max-width:220px;max-height:80px;border:1px solid #243041;border-radius:8px;margin-top:6px";
-              row.querySelector("td:nth-child(3)").appendChild(preview);
+              cell.appendChild(preview);
+              const clearBtn = document.createElement("button");
+              clearBtn.className = "danger btn-clear-option-img";
+              clearBtn.textContent = "حذف الصورة";
+              clearBtn.style.marginTop = "6px";
+              cell.appendChild(clearBtn);
 
               opt.image = opt.image || { url: "", data: "" };
               attachImageInputs(opt.image, {
@@ -1785,6 +1815,7 @@
                 fileInput: f,
                 pasteZone: pz,
                 preview,
+                clearBtn: clearBtn,
               });
 
               // حذف خيار
@@ -2588,6 +2619,14 @@
         const file = wrap.querySelector(".logo-file");
         const pz = wrap.querySelector(".logo-paste");
         const prev = wrap.querySelector(".logo-preview");
+        let clrBtn = wrap.querySelector(".btn-logo-clear");
+        if (!clrBtn) {
+          clrBtn = document.createElement("button");
+          clrBtn.className = "danger btn-logo-clear";
+          clrBtn.textContent = "حذف الصورة";
+          clrBtn.style.marginTop = "6px";
+          prev.insertAdjacentElement("afterend", clrBtn);
+        }
         const alt = wrap.querySelector(".logo-alt");
 
         const logo =
@@ -2637,6 +2676,17 @@
             }
           }
         });
+
+        if (clrBtn) {
+          clrBtn.onclick = () => {
+            logo.data = "";
+            logo.url = "";
+            url.value = "";
+            try { file.value = ""; } catch {}
+            refresh();
+            status("�� ����");
+          };
+        }
 
         refresh();
       }
