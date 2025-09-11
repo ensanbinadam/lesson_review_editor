@@ -976,7 +976,9 @@
         <div class="col" style="min-width: 220px">
           <label>معاينة</label>
           <img class="img-preview" alt="" />
-          <button class="danger btn-clear-img" style="margin-top:6px">حذف الصورة</button>
+          <button class="danger btn-clear-img" style="margin-top: 6px">
+            حذف الصورة
+          </button>
           <div class="dz img-paste" tabindex="0">لصق/إفلات صورة هنا</div>
           <input type="file" accept="image/*" class="img-file" />
         </div>
@@ -1027,7 +1029,9 @@
           <div class="col">
             <label>معاينة</label>
             <img class="ex-img-preview" alt="" />
-            <button class="danger ex-img-clear" style="margin-top:6px">حذف الصورة</button>
+            <button class="danger ex-img-clear" style="margin-top: 6px">
+              حذف الصورة
+            </button>
           </div>
         </div>
 
@@ -1059,9 +1063,11 @@
             <input type="text" class="q-img-url" placeholder="رابط صورة" />
             <div class="dz q-img-paste" tabindex="0">لصق/إفلات صورة هنا</div>
             <input type="file" accept="image/*" class="q-img-file" />
-            <label style="margin-top:6px">معاينة</label>
+            <label style="margin-top: 6px">معاينة</label>
             <img class="img-preview q-img-preview" alt="" />
-            <button class="danger q-img-clear" style="margin-top:6px">حذف الصورة</button>
+            <button class="danger q-img-clear" style="margin-top: 6px">
+              حذف الصورة
+            </button>
           </div>
           <div class="col">
             <label>الإجابة الصحيحة</label>
@@ -1139,7 +1145,7 @@
           ملتقى التعليم التفاعلي | Interactive Teaching Group (ITG)
         </a>
       </p>
-      <p>محرر مراجعة الدروس | 1447هـ/2025م</p>
+      <p>محرر مراجعة الدروس| 1447هـ</p>
     </footer>
 
     <script>
@@ -1571,10 +1577,13 @@
             imgObj.data = "";
             imgObj.url = "";
             if (urlInput) urlInput.value = "";
-            if (fileInput) try { fileInput.value = ""; } catch {}
-            if (preview) preview.src = "";
+            if (fileInput)
+              try {
+                fileInput.value = "";
+              } catch {}
+            if (preview) preview.src = ""; // Clear preview
             refresh();
-            status("�� ����");
+            status("غير محفوظ");
           });
         }
 
@@ -2349,14 +2358,13 @@
         // زر الشهادة (نافذة PDF)
         parts.push(
           "    function openCertificate(){" +
-            '      var student = prompt("أدخل الاسم الثلاثي للطالب/ـة:"); if(!student) return; student = student.trim();' +
+            '      var student = prompt("أدخل الاسم الثلاثي للطالب/ـة:"); if(!student) return; student = student.trim();' + //
             '      var DIR = document.documentElement.getAttribute("dir") || "rtl";' +
             '      var PRIMARY = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#22c55e";' +
             '      var FONT = getComputedStyle(document.body).fontFamily || "Segoe UI, Tahoma, Arial, sans-serif";' +
             '      var logoEl = document.querySelector(".logo"); var logo = (logoEl && logoEl.getAttribute("src")) || "";' +
             '      var subject = (document.querySelector(".hdr-right .muted")||{}).textContent || "";' +
             '      var title = (document.querySelector(".hdr-right h1")||{}).textContent || "";' +
-            '      var quizHtml = (document.getElementById("quizWrap")||{}).innerHTML || "";' +
             '      var resultTxt = (document.getElementById("result")||{}).textContent || "";' +
             '      function esc(s){ return String(s).replace(/[&<>\\"]/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[ch]||ch;}); }' +
             '      var html="";' +
@@ -2364,12 +2372,12 @@
             '      html += "<html lang=\\"ar\\" dir=\\"" + DIR + "\\">";' +
             '      html += "<head><meta charset=\\"utf-8\\"><meta name=\\"viewport\\" content=\\"width=device-width,initial-scale=1\\">";' +
             '      html += "<title>شهادة إنجاز</title>";' +
-            '      html += "<style>@page{size:A4; margin:12mm} :root{--primary:" + PRIMARY + ";--radius:16px} body{font-family:" + FONT + ";margin:0;color:#0b1220;background:#fff;line-height:1.5} .shell{max-width:900px;margin:auto;padding:8mm} @media print{.shell{padding:0}} .head3{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px} .head3 .center{font-weight:900;font-size:20px;text-align:center} h1{font-size:16px;margin:6px 0 0;text-align:center} .logo{max-height:48px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;padding:3px;justify-self:start;margin-left:6mm} .subject{justify-self:end} .section-sep{border:none;border-top:2px solid #e5e7eb;margin:14px 0} section, .q-item{break-inside:avoid;page-break-inside:avoid} .q-item{border:1px solid #e5e7eb;border-radius:12px;padding:8px;margin:8px 0} .q-text{font-weight:700;font-size:14px;margin-bottom:6px} .q-options{display:grid;grid-template-columns:1fr 1fr;gap:6px} .q-options .opt{display:flex;gap:6px;align-items:flex-start;background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:8px} .q-options .opt[aria-pressed=\\"true\\"]{outline:2px solid var(--primary)} .q-options .letter{display:inline-flex;width:24px;height:24px;border-radius:8px;align-items:center;justify-content:center;background:#eef2ff;font-size:13px} .q-feedback{margin-top:6px;font-weight:700} .ok{color:#15803d}.bad{color:#b91c1c} .sign-row{display:flex;justify-content:space-between;margin-top:12px} .muted{color:#475569;font-size:12px}</style>";' +
+            '      html += "<style>@page{size:A4; margin:12mm} :root{--primary:" + PRIMARY + ";--radius:16px;--text:#0b1220;--muted:#475569} body{font-family:" + FONT + ";margin:0;color:#0b1220;background:#fff;line-height:1.5} .shell{max-width:900px;margin:auto;padding:8mm} @media print{.shell{padding:0}} .head3{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px} .head3 .center{font-weight:900;font-size:20px;text-align:center} h1{font-size:16px;margin:6px 0 0;text-align:center} .logo{max-height:48px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;padding:3px;justify-self:start;margin-left:6mm} .subject{justify-self:end} .section-sep{border:none;border-top:2px solid #e5e7eb;margin:14px 0} section{break-inside:avoid;page-break-inside:avoid} .completion-notice{text-align:center;padding:40px 20px;margin:20px 0;border-radius:var(--radius);background-color:#f8fafc;border:2px dashed #d1d5db} .completion-notice .icon{font-size:64px;line-height:1} .completion-notice .text{font-size:24px;font-weight:bold;color:var(--text);margin:16px 0} .completion-notice .score{font-size:18px;color:var(--muted)} .sign-row{display:flex;justify-content:space-between;margin-top:12px} .muted{color:#475569;font-size:12px}</style>";' +
             '      html += "</head><body><div class=\\"shell\\">";' +
             '      html += "<div class=\\"head3\\">" + (logo? "<img class=\\"logo\\" src=\\"" + esc(logo) + "\\" alt=\\"شعار\\"/>" : "<div class=\\"logo\\"></div>") + "<div class=\\"center\\">شهادة إنجاز طالب / طالبة</div><div class=\\"subject muted\\">" + esc(subject) + "</div></div>";' +
             '      html += "<h1>" + esc(title) + "</h1>";' +
             '      html += "<hr class=\\"section-sep\\">";' +
-            '      html += "<section><div class=\\"title\\" style=\\"font-size:18px;margin-bottom:8px\\">الاختبار القصير</div><div id=\\"quizCopy\\">" + quizHtml + "</div><div class=\\"muted\\" style=\\"margin-top:8px\\">" + esc(resultTxt) + "</div></section>";' +
+            '      html += "<section class=\\"completion-notice\\"><div class=\\"icon\\">🏆</div><div class=\\"text\\">تم إنجاز الاختبار بنجاح</div><div class=\\"score\\">" + esc(resultTxt) + "</div></section>";' +
             '      html += "<hr class=\\"section-sep\\">";' +
             '      html += "<section><div class=\\"sign-row\\"><div><b>اسم الطالب/ـة:</b> " + esc(student) + "</div><div><b>اسم المعلم/ـة:</b> " + esc(TEACHER_NAME) + "</div></div></section>";' +
             '      html += "<div class=\\"print-hint muted\\">اختر \\"حفظ كملف PDF\\" من نافذة الطباعة.</div>";' +
@@ -2682,9 +2690,11 @@
             logo.data = "";
             logo.url = "";
             url.value = "";
-            try { file.value = ""; } catch {}
-            refresh();
-            status("�� ����");
+            try {
+              file.value = "";
+            } catch {}
+            refresh(); // Clear preview
+            status("غير محفوظ");
           };
         }
 
