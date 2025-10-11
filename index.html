@@ -1,0 +1,2773 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>محرر مراجعة الدروس|Lesson review editor</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --surface: #111827;
+        --muted: #1f2937;
+        --text: #e5e7eb;
+        --subtext: #cbd5e1;
+        --primary: #22c55e;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --radius: 16px;
+        --transition: all 0.3s ease;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: linear-gradient(180deg, var(--bg), #0b1220 30%, #0a0f1a);
+        color: var(--text);
+        font-family: "Segoe UI", Tahoma, system-ui, -apple-system,
+          "Noto Naskh Arabic UI", Arial, sans-serif;
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+      :where(button, input, select, textarea) {
+        font: inherit;
+      }
+      a {
+        color: var(--primary);
+        text-decoration: none;
+      }
+
+      /* الهيدر */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(17, 24, 39, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #243041;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .header-inner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .badge {
+        background: var(--muted);
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--subtext);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .badge.warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+      }
+
+      .badge.success {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 20px;
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      /* الشريط الجانبي */
+      .sidebar {
+        background: linear-gradient(180deg, #0b1220, #0a0f1a);
+        border: 1px solid #233045;
+        border-radius: var(--radius);
+        padding: 16px;
+        height: calc(100vh - 80px);
+        position: sticky;
+        top: 80px;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .sidebar-section {
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 12px;
+        padding: 12px;
+      }
+
+      .sidebar-section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--subtext);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      /* التبويبات الجانبية */
+      .tabs-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .tab-sidebar {
+        background: #0b1220;
+        border: 1px solid #2a3b52;
+        padding: 14px 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        color: #cbd5e1;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-align: right;
+      }
+
+      .tab-sidebar:hover {
+        background: #1e293b;
+        transform: translateX(-5px);
+      }
+
+      .tab-sidebar.active {
+        background: var(--primary);
+        border-color: transparent;
+        color: #0a0f1a;
+        font-weight: 600;
+      }
+
+      /* الكروت */
+      .card {
+        background: linear-gradient(180deg, #0d1523, #0b1220);
+        border: 1px solid #233045;
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        min-height: calc(100vh - 120px);
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .row.wrap {
+        flex-wrap: wrap;
+      }
+
+      .col {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      label {
+        font-size: 13px;
+        color: var(--subtext);
+        font-weight: 500;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="color"],
+      select,
+      textarea {
+        background: #0b1220;
+        border: 1px solid #243041;
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 10px;
+        width: 100%;
+        outline: none;
+        transition: var(--transition);
+        font-family: inherit;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+      }
+
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      /* الأزرار */
+      button {
+        appearance: none;
+        border: 1px solid #243041;
+        cursor: pointer;
+        color: #fff;
+        background: linear-gradient(
+          180deg,
+          var(--primary),
+          color-mix(in oklab, var(--primary) 70%, black)
+        );
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-family: inherit;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button.secondary {
+        background: linear-gradient(180deg, #1e293b, #0f172a);
+      }
+
+      button.danger {
+        background: linear-gradient(180deg, var(--danger), #7f1d1d);
+      }
+
+      button.ghost {
+        background: transparent;
+        border-color: #334155;
+      }
+
+      button.warning {
+        background: linear-gradient(180deg, var(--warning), #92400e);
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .section {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .pill {
+        background: #0b1220;
+        border: 1px solid #243041;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+      }
+
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .list-item {
+        background: #0b1220;
+        border: 1px dashed #334155;
+        padding: 16px;
+        border-radius: 12px;
+        transition: var(--transition);
+      }
+
+      .list-item:hover {
+        border-color: var(--primary);
+      }
+
+      .hr {
+        height: 1px;
+        background: #243041;
+        margin: 12px 0;
+      }
+
+      .hint {
+        color: #9ca3af;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .title {
+        font-size: 22px;
+        font-weight: 800;
+        background: linear-gradient(90deg, #22c55e, #3b82f6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .subtitle {
+        color: #a1a1aa;
+        font-size: 14px;
+      }
+
+      /* فاصل أوضح داخل التبويبات */
+      .hr.wide {
+        height: 0;
+        border-top: 2px dashed #334155;
+        background: transparent;
+        margin: 20px 0;
+      }
+
+      /* عنوان فرعي */
+      .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #cbd5e1;
+        margin: 8px 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .section-title::before {
+        content: "";
+        display: block;
+        width: 4px;
+        height: 16px;
+        background: var(--primary);
+        border-radius: 2px;
+      }
+
+      /* معاينات الصور */
+      .img-preview,
+      .ex-img-preview,
+      .logo-preview {
+        max-height: 100px;
+        border: 1px solid #243041;
+        border-radius: 8px;
+        object-fit: contain;
+        background: #0b1220;
+        padding: 4px;
+        transition: var(--transition);
+      }
+
+      .img-preview:hover,
+      .ex-img-preview:hover,
+      .logo-preview:hover {
+        transform: scale(1.02);
+      }
+
+      /* أيقونات */
+      .icon {
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+      }
+
+      /* التقدم والإحصائيات */
+      .progress-container {
+        margin: 16px 0;
+      }
+
+      .progress-bar {
+        height: 6px;
+        background: #1e293b;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 3px;
+        transition: width 0.5s ease;
+      }
+
+      .progress-text {
+        font-size: 12px;
+        color: var(--subtext);
+        display: flex;
+        justify-content: space-between;
+      }
+
+      /* التكيف مع الشاشات الصغيرة */
+      @media (max-width: 960px) {
+        .container {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
+
+        .sidebar {
+          position: static;
+          height: auto;
+          max-height: 400px;
+        }
+
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+
+        .header-inner {
+          flex-wrap: wrap;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .toolbar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .toolbar button {
+          width: 100%;
+        }
+      }
+
+      /* تأثيرات للتركيز على العناصر النشطة */
+      .active-item {
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+        }
+      }
+
+      /* تحسين المظهر للعناصر المخفية */
+      [hidden] {
+        display: none !important;
+      }
+
+      /* تحسين التمرير */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #0f172a;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #475569;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <div class="title">محرر مراجعة الدروس</div>
+        <div class="badge">
+          <span class="icon">📋</span> v3.2 – واجهة محسنة وتنظيم أفضل
+        </div>
+        <div class="badge warning" id="status">
+          <span class="icon">⚠️</span> غير محفوظ
+        </div>
+        <div style="margin-inline-start: auto" class="toolbar">
+          <button id="btnPreview" class="secondary">
+            <span class="icon">👁️</span> معاينة صفحة الطالب
+          </button>
+          <button id="btnExportHTML">
+            <span class="icon">📥</span> توليد صفحة الطالب (HTML)
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <!-- مساحة التحرير -->
+      <main class="card" aria-label="محرر المشروع">
+        <!-- META -->
+        <section id="tab-meta" class="section" role="tabpanel">
+          <div class="grid-2">
+            <div class="col">
+              <label>عنوان الدرس</label>
+              <input
+                id="title"
+                type="text"
+                placeholder="مثال: دورة مهارات التفكير"
+              />
+            </div>
+            <div class="col">
+              <label>المادة/الصف</label>
+              <input
+                id="subject"
+                type="text"
+                placeholder="مثال: مهارات حياتية – الصف الثالث"
+              />
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="col">
+              <label>المدة (دقائق)</label>
+              <input id="duration" type="number" min="5" step="5" value="45" />
+            </div>
+            <div class="col">
+              <label>أهداف التعلم (كل هدف بسطر)</label>
+              <textarea
+                id="objectives"
+                placeholder="يعرّف مفهوم ...&#10;يميز بين ...&#10;يطبّق ..."
+              ></textarea>
+            </div>
+            <div class="col">
+              <label>ملاحظات للمعلم (لن تظهر للطالب)</label>
+              <textarea
+                id="teacherNotes"
+                placeholder="روابط - تذكير بالأنشطة - تقييم"
+              ></textarea>
+            </div>
+          </div>
+        </section>
+
+        <div class="hr wide"></div>
+
+        <!-- FEEDBACK -->
+        <section id="tab-feedback" class="section" role="tabpanel" hidden>
+          <div class="col">
+            <div class="section-title">نصوص المراجعة السريعة</div>
+            <label>نص التغذية الراجعة (فقرات متعددة)</label>
+            <textarea
+              id="feedbackText"
+              placeholder="اكتب نصوصًا قصيرة تذكّر بالدروس السابقة..."
+            ></textarea>
+          </div>
+
+          <div class="col">
+            <div class="section-title">المعرض المصوَّر (اختياري)</div>
+            <label class="row"
+              >صور التغذية الراجعة <span class="pill">اختياري</span></label
+            >
+            <div class="list" id="feedbackImages"></div>
+            <div class="toolbar">
+              <button id="btnAddFeedbackImg" class="secondary">
+                <span class="icon">🖼️</span> إضافة صورة
+              </button>
+            </div>
+            <div class="hint">
+              يمكن: رابط، رفع من الجهاز، أو لصق من الحافظة.
+            </div>
+          </div>
+          <div class="col">
+            <div class="section-title">شرح فيديو (اختياري)</div>
+            <div class="grid-3">
+              <div class="col">
+                <label>رابط الفيديو</label>
+                <input
+                  id="feedbackVideoUrl"
+                  type="text"
+                  placeholder="https://youtu.be/xxxx أو https://example.com/clip.mp4"
+                />
+              </div>
+              <div class="col">
+                <label>طريقة العرض</label>
+                <select id="feedbackVideoMode">
+                  <option value="link">عرض رابط</option>
+                  <option value="embed">عرض مباشر داخل الصفحة</option>
+                </select>
+              </div>
+              <div class="col">
+                <label>تلميح</label>
+                <div class="hint">
+                  لن تظهر حاوية الفيديو للطالب إذا تركت الرابط فارغًا.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="hr wide"></div>
+
+        <!-- EXERCISES -->
+        <section id="tab-exercises" class="section" role="tabpanel" hidden>
+          <div class="section-title">إضافة تمرين جديد</div>
+          <div class="toolbar">
+            <button id="btnAddExercise" class="secondary">
+              <span class="icon">➕</span> إضافة تمرين
+            </button>
+          </div>
+
+          <div class="section-title">قائمة التمارين وترتيبها</div>
+          <div id="exercisesList" class="list"></div>
+        </section>
+
+        <div class="hr wide"></div>
+
+        <!-- QUIZ -->
+        <section id="tab-quiz" class="section" role="tabpanel" hidden>
+          <div class="section-title">إضافة سؤال جديد</div>
+          <div class="toolbar">
+            <button id="btnAddQuestion" class="secondary">
+              <span class="icon">➕</span> إضافة سؤال
+            </button>
+          </div>
+
+          <div class="section-title">قائمة الأسئلة وتحديد الإجابات الصحيحة</div>
+          <div id="quizList" class="list"></div>
+
+          <div class="hint">
+            ابدأ بسؤال بخيارين ويمكن زيادتها حتى 6. لكل خيار نص وصورة.
+          </div>
+        </section>
+
+        <div class="hr wide"></div>
+
+        <!-- FOOTER + LOGO -->
+        <section id="tab-footer" class="section" role="tabpanel" hidden>
+          <div class="col">
+            <div class="section-title">نص تذييل صفحة الطالب</div>
+            <label>تذييل صفحة الطالب</label>
+            <textarea
+              id="footerText"
+              placeholder="حقوق، مصادر، رابط الموقع، شكر خاص..."
+            ></textarea>
+          </div>
+
+          <div class="section-title">إعدادات الشعار (رفع/لصق/معاينة)</div>
+          <div class="list-item" id="brandLogoWrap">
+            <div class="title" style="font-size: 16px">
+              <span class="icon">🏢</span> الشعار (يظهر يسار الترويسة في صفحة
+              الطالب)
+            </div>
+
+            <div class="grid-3">
+              <div class="col">
+                <label>رابط الشعار (اختياري)</label>
+                <input
+                  type="text"
+                  class="logo-url"
+                  placeholder="https://.../logo.png"
+                />
+              </div>
+              <div class="col">
+                <label>رفع شعار</label>
+                <input type="file" accept="image/*" class="logo-file" />
+                <div class="dz logo-paste" tabindex="0" style="margin-top: 6px">
+                  لصق/إفلات صورة الشعار هنا
+                </div>
+              </div>
+              <div class="col">
+                <label>معاينة</label>
+                <img class="logo-preview" alt="معاينة الشعار" />
+              </div>
+            </div>
+
+            <div class="col" style="max-width: 400px">
+              <label>نص بديل (alt)</label>
+              <input
+                type="text"
+                class="logo-alt"
+                placeholder="وصف الشعار لذوي الاحتياجات"
+              />
+            </div>
+
+            <div class="hint">
+              عند التوليد سيتم تضمين الشعار والصور والخط داخل الملف (Base64).
+            </div>
+          </div>
+          <div class="col" style="max-width: 420px">
+            <label>اسم المعلم/المعلمة (يظهر في شهادة الإنجاز)</label>
+            <input id="teacherName" type="text" placeholder="مثال: أ. فاطمة " />
+          </div>
+        </section>
+
+        <div class="hr wide"></div>
+
+        <!-- DESIGN / PUBLISH -->
+        <section id="tab-design" class="section" role="tabpanel" hidden>
+          <div class="grid-3">
+            <div class="col">
+              <label>اللون الرئيسي</label>
+              <input id="primaryColor" type="color" value="#22c55e" />
+            </div>
+            <div class="col">
+              <label>خط الواجهة</label>
+              <select id="fontFamily">
+                <option value="Tahoma, Arial, sans-serif">Tahoma</option>
+                <option value="Segoe UI, Tahoma, Arial, sans-serif" selected>
+                  Segoe UI
+                </option>
+                <option
+                  value="system-ui, -apple-system, Segoe UI, Arial, sans-serif"
+                >
+                  System UI
+                </option>
+                <option value="Cairo, Tahoma, Arial, sans-serif">
+                  Cairo (إن كان مثبتًا)
+                </option>
+              </select>
+            </div>
+            <div class="col">
+              <label>اتجاه الواجهة</label>
+              <select id="rtl">
+                <option value="true" selected>يمين ← يسار (RTL)</option>
+                <option value="false">يسار ← يمين (LTR)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="list-item">
+            <div class="title" style="font-size: 16px">
+              <span class="icon">🔤</span> تضمين خط مخصص (اختياري)
+            </div>
+
+            <div class="grid-3">
+              <div class="col">
+                <label>اسم الخط</label>
+                <input id="fontName" type="text" placeholder="CustomFont" />
+              </div>
+              <div class="col">
+                <label>ملف الخط</label>
+                <input
+                  id="fontFile"
+                  type="file"
+                  accept=".woff2,.woff,.ttf,.otf"
+                />
+              </div>
+              <div class="col">
+                <label>الحالة</label>
+                <div id="fontStatus" class="pill">لا يوجد خط مضمّن</div>
+              </div>
+            </div>
+
+            <div class="hint">
+              سيُحقن الخط داخل صفحة الطالب عبر <code>@font-face</code>.
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="toolbar">
+            <button id="btnPreview2" class="secondary">
+              <span class="icon">👁️</span> معاينة صفحة الطالب
+            </button>
+            <button id="btnExportHTML2">
+              <span class="icon">📥</span> توليد صفحة الطالب (HTML)
+            </button>
+          </div>
+
+          <div class="hint">يمكنك أيضًا استخدام الأزرار أعلى الصفحة.</div>
+        </section>
+      </main>
+
+      <!-- الشريط الجانبي -->
+      <aside class="sidebar" aria-label="إدارة المشاريع والتبويبات">
+        <!-- التبويبات الجانبية -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">
+            <span class="icon">📝</span> خطوات إنشاء المشروع
+          </div>
+          <div class="tabs-sidebar">
+            <div
+              class="tab-sidebar active"
+              data-tab="meta"
+              role="tab"
+              aria-selected="true"
+            >
+              <span class="icon">📝</span> البيانات العامة
+            </div>
+            <div class="tab-sidebar" data-tab="feedback" role="tab">
+              <span class="icon">🔄</span> تغذية راجعة
+            </div>
+            <div class="tab-sidebar" data-tab="exercises" role="tab">
+              <span class="icon">📚</span> تمارين محلولة
+            </div>
+            <div class="tab-sidebar" data-tab="quiz" role="tab">
+              <span class="icon">❓</span> الأسئلة التفاعلية
+            </div>
+            <div class="tab-sidebar" data-tab="footer" role="tab">
+              <span class="icon">📄</span> التذييل والشعار
+            </div>
+            <div class="tab-sidebar" data-tab="design" role="tab">
+              <span class="icon">🎨</span> المعاينة والتوليد
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">
+            <span class="icon">🔄</span> إدارة المشروع
+          </div>
+          <div class="col">
+            <div class="row wrap">
+              <button id="btnNew" class="ghost">
+                <span class="icon">➕</span> مشروع جديد
+              </button>
+              <button id="btnSave">
+                <span class="icon">💾</span> حفظ المشروع
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">
+            <span class="icon">📂</span> مشاريعي
+          </div>
+          <div class="col">
+            <label for="selProjects">اختر مشروعاً</label>
+            <select id="selProjects"></select>
+            <div class="toolbar">
+              <button id="btnLoad" class="secondary">
+                <span class="icon">📂</span> تحميل
+              </button>
+              <button id="btnDuplicate" class="secondary">
+                <span class="icon">📋</span> استنساخ
+              </button>
+              <button id="btnDelete" class="danger">
+                <span class="icon">🗑️</span> حذف
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">
+            <span class="icon">📤</span> استيراد وتصدير
+          </div>
+          <div class="col">
+            <button id="btnExportJSON" class="secondary">
+              <span class="icon">💾</span> تصدير JSON
+            </button>
+            <input
+              type="file"
+              id="importFile"
+              accept="application/json"
+              style="display: none"
+            />
+            <button id="btnImportJSON" class="secondary">
+              <span class="icon">📤</span> استيراد JSON
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">
+            <span class="icon">📊</span> تقدم المشروع
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                id="progressFill"
+                style="width: 30%"
+              ></div>
+            </div>
+            <div class="progress-text">
+              <span>إكمال المشروع</span>
+              <span id="progressPercent">30%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hint">
+          <span class="icon">💡</span> الحفظ محليًا (localStorage). احتفظ بنسخة
+          JSON احتياطية.
+        </div>
+      </aside>
+    </div>
+
+    <!-- القوالب -->
+    <template id="tpl-feedback-img">
+      <div class="list-item row wrap" tabindex="0">
+        <div class="col" style="flex: 1 1 260px">
+          <label>رابط الصورة (URL)</label>
+          <input
+            type="text"
+            placeholder="https://.../image.png"
+            class="img-url"
+          />
+          <label>نص بديل (alt)</label>
+          <input type="text" placeholder="وصف موجز للصورة" class="img-alt" />
+        </div>
+        <div class="col" style="min-width: 220px">
+          <label>معاينة</label>
+          <img class="img-preview" alt="" />
+          <button class="danger btn-clear-img" style="margin-top: 6px">
+            حذف الصورة
+          </button>
+          <div class="dz img-paste" tabindex="0">لصق/إفلات صورة هنا</div>
+          <input type="file" accept="image/*" class="img-file" />
+        </div>
+        <div class="col" style="justify-content: flex-end">
+          <label>&nbsp;</label>
+          <button class="danger btn-remove">
+            <span class="icon">🗑️</span> حذف
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <template id="tpl-exercise">
+      <div class="list-item">
+        <div class="grid-2">
+          <div class="col">
+            <label>نص التمرين</label>
+            <textarea
+              class="ex-prompt"
+              placeholder="اكتب السؤال أو المطلوب..."
+            ></textarea>
+          </div>
+          <div class="col">
+            <label>الحل/الخطوات</label>
+            <textarea
+              class="ex-solution"
+              placeholder="اكتب الإجابة النموذجية أو الخطوات"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-top: 8px">
+          <div class="col">
+            <label>رابط صورة التمرين (اختياري)</label>
+            <input
+              type="text"
+              class="ex-img-url"
+              placeholder="https://.../img.png"
+            />
+          </div>
+          <div class="col">
+            <label>رفع/لصق صورة</label>
+            <input type="file" accept="image/*" class="ex-img-file" />
+            <div class="dz ex-img-paste" tabindex="0" style="margin-top: 6px">
+              لصق/إفلات صورة
+            </div>
+          </div>
+          <div class="col">
+            <label>معاينة</label>
+            <img class="ex-img-preview" alt="" />
+            <button class="danger ex-img-clear" style="margin-top: 6px">
+              حذف الصورة
+            </button>
+          </div>
+        </div>
+
+        <div class="row wrap" style="margin-top: 8px">
+          <button class="secondary btn-move-up">
+            <span class="icon">⬆️</span> للأعلى
+          </button>
+          <button class="secondary btn-move-down">
+            <span class="icon">⬇️</span> للأسفل
+          </button>
+          <div style="flex: 1"></div>
+          <button class="danger btn-remove">
+            <span class="icon">🗑️</span> حذف
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <template id="tpl-question">
+      <div class="list-item">
+        <div class="col">
+          <label>نص السؤال</label>
+          <textarea class="q-text" placeholder="اكتب صيغة السؤال"></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="col">
+            <label>صورة السؤال (اختياري)</label>
+            <input type="text" class="q-img-url" placeholder="رابط صورة" />
+            <div class="dz q-img-paste" tabindex="0">لصق/إفلات صورة هنا</div>
+            <input type="file" accept="image/*" class="q-img-file" />
+            <label style="margin-top: 6px">معاينة</label>
+            <img class="img-preview q-img-preview" alt="" />
+            <button class="danger q-img-clear" style="margin-top: 6px">
+              حذف الصورة
+            </button>
+          </div>
+          <div class="col">
+            <label>الإجابة الصحيحة</label>
+            <select class="q-correct"></select>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="secondary btn-add-option">
+            <span class="icon">➕</span> إضافة خيار
+          </button>
+        </div>
+
+        <table class="table" aria-label="خيارات السؤال">
+          <thead>
+            <tr>
+              <th style="width: 60px">#</th>
+              <th>النص</th>
+              <th style="width: 260px">الصورة</th>
+              <th style="width: 120px">إزالة</th>
+            </tr>
+          </thead>
+          <tbody class="q-options-body"></tbody>
+        </table>
+
+        <div class="row wrap" style="margin-top: 8px">
+          <button class="secondary btn-move-up">
+            <span class="icon">⬆️</span> للأعلى
+          </button>
+          <button class="secondary btn-move-down">
+            <span class="icon">⬇️</span> للأسفل
+          </button>
+          <div style="flex: 1"></div>
+          <button class="danger btn-remove">
+            <span class="icon">🗑️</span> حذف السؤال
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <template id="tpl-option-row">
+      <tr>
+        <td class="opt-index">—</td>
+        <td>
+          <input class="opt-text" type="text" placeholder="نص الخيار" />
+          <!-- جديد: تعليق اختياري يظهر بعد التصحيح -->
+          <input
+            class="opt-comment"
+            type="text"
+            placeholder="تعليق (اختياري) — يظهر بعد التصحيح"
+            style="margin-top: 6px"
+          />
+        </td>
+        <td>
+          <input
+            type="text"
+            class="opt-img-url"
+            placeholder="رابط صورة (اختياري)"
+          />
+          <div class="dz opt-img-paste" tabindex="0">لصق/إفلات صورة</div>
+          <input type="file" accept="image/*" class="opt-img-file" />
+        </td>
+        <td>
+          <button class="danger btn-remove-option">
+            <span class="icon">🗑️</span> حذف
+          </button>
+        </td>
+      </tr>
+    </template>
+
+    <footer dir="rtl" style="text-align: center; font-family: inherit">
+      <p>
+        برمجة :
+        <a
+          href="https://t.me/Interact2030/77810"
+          target="_blank"
+          rel="noopener"
+        >
+          ملتقى التعليم التفاعلي | Interactive Teaching Group (ITG)
+        </a>
+      </p>
+      <p>محرر مراجعة الدروس| 1447هـ</p>
+    </footer>
+
+    <script>
+      // ===== نموذج البيانات =====
+      const emptyState = () => ({
+        id: null,
+        meta: {
+          title: "",
+          subject: "",
+          duration: 45,
+          objectives: "",
+          teacherNotes: "",
+        },
+        feedback: { text: "", images: [], video: { url: "", mode: "link" } },
+        exercises: [], // [{prompt,solution,image:{url,data}}]
+        quiz: [], // [{text,image:{url,data},options:[{text,image:{url,data}}],correct}]
+        design: {
+          primary: "#22c55e",
+          font: "Segoe UI, Tahoma, Arial, sans-serif",
+          rtl: true,
+          fontData: "",
+          fontName: "CustomFont",
+        },
+        footer: { text: "", teacher: "" },
+        branding: { logo: { url: "", data: "", alt: "" } }, // شعار الصفحة
+      });
+
+      let state = emptyState();
+
+      // ===== أدوات =====
+      const $ = (s) => document.querySelector(s);
+      const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+      const status = (txt, isSuccess = false) => {
+        const statusEl = $("#status");
+        statusEl.textContent = txt;
+
+        if (isSuccess) {
+          statusEl.classList.remove("warning");
+          statusEl.classList.add("success");
+          statusEl.innerHTML = '<span class="icon">✅</span> ' + txt;
+        } else {
+          statusEl.classList.remove("success");
+          statusEl.classList.add("warning");
+          statusEl.innerHTML = '<span class="icon">⚠️</span> ' + txt;
+        }
+      };
+
+      const uid = () => "p" + Date.now().toString(36);
+      const escapeHtml = (str = "") =>
+        str.replace(
+          /[&<>\"]/g,
+          (ch) =>
+            ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch] ||
+            ch)
+        );
+
+      // تحويل أي رابط داخل النص إلى <a> قابل للنقر
+      const linkify = (html) =>
+        html.replace(/((?:https?:\/\/|www\.)[^\s<]+)/g, (m) => {
+          const url = m.startsWith("http") ? m : "http://" + m;
+          return (
+            '<a href="' + url + '" target="_blank" rel="noopener">' + m + "</a>"
+          );
+        });
+
+      const processDoubleBars = (text = "") => {
+        if (!text || typeof text !== "string") return text;
+
+        // استبدال الرمز الخاص دون لمس المسافات المحيطة حتى تبقى المسافات المقصودة بعد الانتقال للسطر الجديد
+        return text.replace(/\|\|/g, "<br>");
+      };
+
+      const paragraphs = (text = "") =>
+        text
+          .split(/\n+/)
+          .map((x) => x.replace(/\r/g, ""))
+          .filter((p) => p.trim().length > 0)
+          .map((p) => {
+            const safeText = escapeHtml(p);
+            const processedP = processDoubleBars(safeText);
+            return `<p>${linkify(processedP)}</p>`;
+          })
+          .join("\n");
+
+      const isDataUrl = (u = "") => /^data:/i.test(u);
+
+      // عرض الأرقام بصيغة عربية ٠١٢٣٤٥٦٧٨٩
+      const toArabicDigits = (x) =>
+        String(x).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+
+      // ===== تخزين محلي =====
+      function saveToLocal() {
+        const list = JSON.parse(
+          localStorage.getItem("lesson_projects") || "[]"
+        );
+        const idx = list.findIndex((p) => p.id === state.id);
+        const snapshot = JSON.parse(JSON.stringify(state));
+
+        if (state.id == null) {
+          snapshot.id = uid();
+          state.id = snapshot.id;
+        }
+
+        if (idx > -1) list[idx] = snapshot;
+        else list.push(snapshot);
+
+        localStorage.setItem("lesson_projects", JSON.stringify(list));
+        populateProjects();
+        updateProgress();
+        status("تم الحفظ", true);
+      }
+
+      function populateProjects() {
+        const sel = $("#selProjects");
+        const list = JSON.parse(
+          localStorage.getItem("lesson_projects") || "[]"
+        );
+        sel.innerHTML = "";
+
+        list.forEach((p) => {
+          const opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = p.meta?.title || `مشروع بلا عنوان (${p.id})`;
+          sel.appendChild(opt);
+        });
+
+        if (state.id) {
+          sel.value = state.id;
+        }
+      }
+
+      function loadFromLocal(id) {
+        const list = JSON.parse(
+          localStorage.getItem("lesson_projects") || "[]"
+        );
+        const p = list.find((x) => x.id === id);
+
+        if (!p) {
+          alert("لم يتم العثور على المشروع");
+          return;
+        }
+
+        migrateProject(p);
+        state = p;
+        renderAll();
+        status("تم التحميل", true);
+
+        p.feedback = Object.assign(
+          { text: "", images: [], video: { url: "", mode: "link" } },
+          p.feedback || {}
+        );
+        if (!p.feedback.video) p.feedback.video = { url: "", mode: "link" };
+
+        p.footer = Object.assign({ text: "", teacher: "" }, p.footer || {});
+      }
+
+      function deleteFromLocal(id) {
+        let list = JSON.parse(localStorage.getItem("lesson_projects") || "[]");
+        list = list.filter((p) => p.id !== id);
+        localStorage.setItem("lesson_projects", JSON.stringify(list));
+        populateProjects();
+        status("تم الحذف", true);
+      }
+
+      function duplicateProject() {
+        const copy = JSON.parse(JSON.stringify(state));
+        copy.id = uid();
+        const list = JSON.parse(
+          localStorage.getItem("lesson_projects") || "[]"
+        );
+        list.push(copy);
+        localStorage.setItem("lesson_projects", JSON.stringify(list));
+        populateProjects();
+        $("#selProjects").value = copy.id;
+        loadFromLocal(copy.id);
+      }
+
+      // ترحيل إصدارات قديمة
+      function migrateProject(p) {
+        p.feedback = p.feedback || { text: "", images: [] };
+        p.exercises = (p.exercises || []).map((ex) =>
+          Object.assign(
+            { prompt: "", solution: "", image: { url: "", data: "" } },
+            ex
+          )
+        );
+
+        p.quiz = (p.quiz || []).map((q) => {
+          const Q = Object.assign(
+            { text: "", image: { url: "", data: "" }, options: [], correct: 0 },
+            q
+          );
+
+          Q.options = (Q.options || []).map((op) =>
+            typeof op === "string"
+              ? { text: op, comment: "", image: { url: "", data: "" } }
+              : Object.assign(
+                  { text: "", comment: "", image: { url: "", data: "" } },
+                  op
+                )
+          );
+
+          while (Q.options.length < 2)
+            Q.options.push({
+              text: "",
+              comment: "",
+              image: { url: "", data: "" },
+            });
+
+          return Q;
+        });
+
+        p.design = Object.assign(
+          {
+            primary: "#22c55e",
+            font: "Segoe UI, Tahoma, Arial, sans-serif",
+            rtl: true,
+            fontData: "",
+            fontName: "CustomFont",
+          },
+          p.design || {}
+        );
+
+        p.footer = Object.assign({ text: "" }, p.footer || {});
+        p.branding = Object.assign(
+          { logo: { url: "", data: "", alt: "" } },
+          p.branding || {}
+        );
+      }
+
+      // ===== ربط المدخلات =====
+      function bindInputs() {
+        // meta
+        $("#title").value = state.meta.title;
+        $("#subject").value = state.meta.subject;
+        $("#duration").value = state.meta.duration;
+        $("#objectives").value = state.meta.objectives;
+        $("#teacherNotes").value = state.meta.teacherNotes;
+
+        $("#title").oninput = (e) => {
+          state.meta.title = e.target.value;
+          status("غير محفوظ");
+        };
+
+        $("#subject").oninput = (e) => {
+          state.meta.subject = e.target.value;
+          status("غير محفوظ");
+        };
+
+        $("#duration").oninput = (e) => {
+          state.meta.duration = Number(e.target.value || 45);
+          status("غير محفوظ");
+        };
+
+        $("#objectives").oninput = (e) => {
+          state.meta.objectives = e.target.value;
+          status("غير محفوظ");
+        };
+
+        $("#teacherNotes").oninput = (e) => {
+          state.meta.teacherNotes = e.target.value;
+          status("غير محفوظ");
+        };
+
+        // feedback
+        $("#feedbackText").value = state.feedback.text;
+        $("#feedbackText").oninput = (e) => {
+          state.feedback.text = e.target.value;
+          status("غير محفوظ");
+        };
+
+        // فيديو الشرح داخل التغذية
+        state.feedback.video ||= { url: "", mode: "link" };
+
+        const vUrl = document.getElementById("feedbackVideoUrl");
+        const vMode = document.getElementById("feedbackVideoMode");
+
+        if (vUrl) {
+          vUrl.value = state.feedback.video.url || "";
+          vUrl.oninput = (e) => {
+            state.feedback.video.url = e.target.value.trim();
+            status("غير محفوظ");
+          };
+        }
+        if (vMode) {
+          vMode.value = state.feedback.video.mode || "link";
+          vMode.onchange = (e) => {
+            state.feedback.video.mode = e.target.value;
+            status("غير محفوظ");
+          };
+        }
+
+        // design/publish
+        $("#primaryColor").value = state.design.primary;
+        $("#fontFamily").value = state.design.font;
+        $("#rtl").value = String(!!state.design.rtl);
+
+        $("#primaryColor").oninput = (e) => {
+          state.design.primary = e.target.value;
+          document.documentElement.style.setProperty(
+            "--primary",
+            e.target.value
+          );
+          status("غير محفوظ");
+        };
+
+        $("#fontFamily").onchange = (e) => {
+          state.design.font = e.target.value;
+          document.body.style.fontFamily = e.target.value;
+          status("غير محفوظ");
+        };
+
+        $("#rtl").onchange = (e) => {
+          state.design.rtl = e.target.value === "true";
+          document.documentElement.setAttribute(
+            "dir",
+            state.design.rtl ? "rtl" : "ltr"
+          );
+          status("غير محفوظ");
+        };
+
+        // font embed fields
+        $("#fontName").value = state.design.fontName || "CustomFont";
+        $("#fontName").oninput = (e) => {
+          state.design.fontName = e.target.value || "CustomFont";
+          status("غير محفوظ");
+        };
+
+        $("#fontStatus").textContent = state.design.fontData
+          ? "خط مضمّن"
+          : "لا يوجد خط مضمّن";
+
+        // footer
+        $("#footerText").value = state.footer.text;
+        $("#footerText").oninput = (e) => {
+          state.footer.text = e.target.value;
+          status("غير محفوظ");
+        };
+
+        $("#teacherName").value = state.footer.teacher || "";
+        $("#teacherName").oninput = (e) => {
+          state.footer.teacher = e.target.value;
+          status("غير محفوظ");
+        };
+
+        // logo
+        renderBrandLogoControls();
+      }
+
+      // ===== صور: تحويل/إرفاق/لصق =====
+      function fileToDataURL(file) {
+        return new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.onerror = rej;
+          r.readAsDataURL(file);
+        });
+      }
+
+      function attachImageInputs(
+        imgObj,
+        { urlInput, fileInput, pasteZone, preview, clearBtn }
+      ) {
+        const refresh = () => {
+          if (preview) preview.src = imgObj.data || imgObj.url || "";
+        };
+
+        if (urlInput) {
+          urlInput.value = imgObj.url || "";
+          urlInput.oninput = (e) => {
+            imgObj.url = e.target.value;
+            refresh();
+            status("غير محفوظ");
+          };
+        }
+
+        if (fileInput) {
+          fileInput.onchange = async (e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            imgObj.data = await fileToDataURL(f);
+            imgObj.url = "";
+            refresh();
+            status("غير محفوظ");
+          };
+        }
+
+        if (pasteZone) {
+          pasteZone.addEventListener("paste", async (e) => {
+            const items = e.clipboardData?.items || [];
+            for (const it of items) {
+              if (it.type?.startsWith("image/")) {
+                const f = it.getAsFile();
+                if (f) {
+                  imgObj.data = await fileToDataURL(f);
+                  imgObj.url = "";
+                  refresh();
+                  status("غير محفوظ");
+                  break;
+                }
+              }
+            }
+          });
+
+          // دعم سحب وإفلات الصور
+          pasteZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            pasteZone.style.borderColor = "var(--primary)";
+            pasteZone.style.background = "rgba(34, 197, 94, 0.1)";
+          });
+
+          pasteZone.addEventListener("dragleave", (e) => {
+            e.preventDefault();
+            pasteZone.style.borderColor = "";
+            pasteZone.style.background = "";
+          });
+
+          pasteZone.addEventListener("drop", async (e) => {
+            e.preventDefault();
+            pasteZone.style.borderColor = "";
+            pasteZone.style.background = "";
+
+            const files = Array.from(e.dataTransfer.files);
+            for (const f of files) {
+              if (f.type.startsWith("image/")) {
+                imgObj.data = await fileToDataURL(f);
+                imgObj.url = "";
+                refresh();
+                status("غير محفوظ");
+                break;
+              }
+            }
+          });
+        }
+
+        if (clearBtn) {
+          clearBtn.addEventListener("click", () => {
+            imgObj.data = "";
+            imgObj.url = "";
+            if (urlInput) urlInput.value = "";
+            if (fileInput)
+              try {
+                fileInput.value = "";
+              } catch {}
+            if (preview) preview.src = ""; // Clear preview
+            refresh();
+            status("غير محفوظ");
+          });
+        }
+
+        refresh();
+      }
+
+      // ===== تغذية راجعة: صور =====
+      function renderFeedbackImages() {
+        const wrap = $("#feedbackImages");
+        wrap.innerHTML = "";
+
+        state.feedback.images.forEach((img, idx) => {
+          const node = document.importNode(
+            $("#tpl-feedback-img").content,
+            true
+          );
+          const url = node.querySelector(".img-url");
+          const alt = node.querySelector(".img-alt");
+          const prev = node.querySelector(".img-preview");
+          const clr = node.querySelector(".btn-clear-img");
+          const file = node.querySelector(".img-file");
+          const paste = node.querySelector(".img-paste");
+          const del = node.querySelector(".btn-remove");
+
+          alt.value = img.alt || "";
+          alt.oninput = (e) => {
+            img.alt = e.target.value;
+            status("غير محفوظ");
+          };
+
+          attachImageInputs(img, {
+            urlInput: url,
+            fileInput: file,
+            pasteZone: paste,
+            preview: prev,
+            clearBtn: clr,
+          });
+
+          del.onclick = () => {
+            state.feedback.images.splice(idx, 1);
+            renderFeedbackImages();
+            status("غير محفوظ");
+          };
+
+          wrap.appendChild(node);
+        });
+      }
+
+      $("#btnAddFeedbackImg").onclick = () => {
+        state.feedback.images.push({ url: "", alt: "", data: "" });
+        renderFeedbackImages();
+        status("غير محفوظ");
+      };
+
+      // ===== تمارين (مع صورة) =====
+      function renderExercises() {
+        const wrap = $("#exercisesList");
+        wrap.innerHTML = "";
+
+        state.exercises.forEach((ex, idx) => {
+          const node = document.importNode($("#tpl-exercise").content, true);
+          const p = node.querySelector(".ex-prompt");
+          const s = node.querySelector(".ex-solution");
+          const u = node.querySelector(".ex-img-url");
+          const f = node.querySelector(".ex-img-file");
+          const pz = node.querySelector(".ex-img-paste");
+          const prev = node.querySelector(".ex-img-preview");
+          const clr = node.querySelector(".ex-img-clear");
+
+          p.value = ex.prompt || "";
+          s.value = ex.solution || "";
+
+          p.oninput = (e) => {
+            ex.prompt = e.target.value;
+            status("غير محفوظ");
+          };
+
+          s.oninput = (e) => {
+            ex.solution = e.target.value;
+            status("غير محفوظ");
+          };
+
+          ex.image = ex.image || { url: "", data: "" };
+          attachImageInputs(ex.image, {
+            urlInput: u,
+            fileInput: f,
+            pasteZone: pz,
+            preview: prev,
+            clearBtn: clr,
+          });
+
+          node.querySelector(".btn-remove").onclick = () => {
+            state.exercises.splice(idx, 1);
+            renderExercises();
+            status("غير محفوظ");
+          };
+
+          node.querySelector(".btn-move-up").onclick = () => {
+            if (idx > 0) {
+              const t = state.exercises[idx - 1];
+              state.exercises[idx - 1] = ex;
+              state.exercises[idx] = t;
+              renderExercises();
+              status("غير محفوظ");
+            }
+          };
+
+          node.querySelector(".btn-move-down").onclick = () => {
+            if (idx < state.exercises.length - 1) {
+              const t = state.exercises[idx + 1];
+              state.exercises[idx + 1] = ex;
+              state.exercises[idx] = t;
+              renderExercises();
+              status("غير محفوظ");
+            }
+          };
+
+          wrap.appendChild(node);
+        });
+      }
+
+      $("#btnAddExercise").onclick = () => {
+        state.exercises.push({
+          prompt: "",
+          solution: "",
+          image: { url: "", data: "" },
+        });
+
+        renderExercises();
+        status("غير محفوظ");
+      };
+
+      // ===== كويز (خيارات وصور) =====
+      function updateCorrectSelect(selectEl, q) {
+        selectEl.innerHTML = "";
+        q.options.forEach((_, i) => {
+          const op = document.createElement("option");
+          op.value = String(i);
+          op.textContent = String(i + 1);
+          selectEl.appendChild(op);
+        });
+
+        if (q.correct >= q.options.length) q.correct = 0;
+        selectEl.value = String(q.correct);
+      }
+
+      function renderQuiz() {
+        const wrap = $("#quizList");
+        wrap.innerHTML = "";
+
+        state.quiz.forEach((q, idx) => {
+          const node = document.importNode($("#tpl-question").content, true);
+          const qtext = node.querySelector(".q-text");
+          const qUrl = node.querySelector(".q-img-url");
+          const qFile = node.querySelector(".q-img-file");
+          const qPaste = node.querySelector(".q-img-paste");
+          const qPrev = node.querySelector(".q-img-preview");
+          const qClr = node.querySelector(".q-img-clear");
+          const qCorrect = node.querySelector(".q-correct");
+          const tbody = node.querySelector(".q-options-body");
+
+          // تهيئة بنية السؤال
+          q.image = q.image || { url: "", data: "" };
+          q.options = (q.options || []).map((op) =>
+            Object.assign(
+              { text: "", comment: "", image: { url: "", data: "" } },
+              op
+            )
+          );
+
+          while (q.options.length < 2)
+            q.options.push({
+              text: "",
+              comment: "",
+              image: { url: "", data: "" },
+            });
+
+          // نص السؤال وصورته
+          qtext.value = q.text || "";
+          qtext.oninput = (e) => {
+            q.text = e.target.value;
+            status("غير محفوظ");
+          };
+
+          attachImageInputs(q.image, {
+            urlInput: qUrl,
+            fileInput: qFile,
+            pasteZone: qPaste,
+            preview: qPrev,
+            clearBtn: qClr,
+          });
+
+          // رسم خيارات السؤال (مع التعليق)
+          function renderOptions() {
+            tbody.innerHTML = "";
+            q.options.forEach((opt, oi) => {
+              const row = document.importNode(
+                $("#tpl-option-row").content,
+                true
+              );
+              row.querySelector(".opt-index").textContent = String(oi + 1);
+
+              const t = row.querySelector(".opt-text");
+              const cmt = row.querySelector(".opt-comment");
+              const u = row.querySelector(".opt-img-url");
+              const f = row.querySelector(".opt-img-file");
+              const pz = row.querySelector(".opt-img-paste");
+
+              // قيم النص والتعليق + الربط
+              t.value = opt.text || "";
+              t.oninput = (e) => {
+                opt.text = e.target.value;
+                status("غير محفوظ");
+              };
+
+              opt.comment ??= "";
+              cmt.value = opt.comment;
+              cmt.oninput = (e) => {
+                opt.comment = e.target.value;
+                status("غير محفوظ");
+              };
+
+              // معاينة الصورة
+              const cell = row.querySelector("td:nth-child(3)");
+              const preview = new Image();
+              preview.style.cssText =
+                "display:block;max-width:220px;max-height:80px;border:1px solid #243041;border-radius:8px;margin-top:6px";
+              cell.appendChild(preview);
+              const clearBtn = document.createElement("button");
+              clearBtn.className = "danger btn-clear-option-img";
+              clearBtn.textContent = "حذف الصورة";
+              clearBtn.style.marginTop = "6px";
+              cell.appendChild(clearBtn);
+
+              opt.image = opt.image || { url: "", data: "" };
+              attachImageInputs(opt.image, {
+                urlInput: u,
+                fileInput: f,
+                pasteZone: pz,
+                preview,
+                clearBtn: clearBtn,
+              });
+
+              // حذف خيار
+              row.querySelector(".btn-remove-option").onclick = () => {
+                if (q.options.length <= 2) {
+                  alert("الحد الأدنى خياران");
+                  return;
+                }
+
+                q.options.splice(oi, 1);
+                if (q.correct === oi) q.correct = 0;
+                else if (q.correct > oi) q.correct--;
+
+                renderOptions();
+                updateCorrectSelect(qCorrect, q);
+                status("غير محفوظ");
+              };
+
+              tbody.appendChild(row);
+            });
+          }
+
+          renderOptions();
+          updateCorrectSelect(qCorrect, q);
+
+          // إضافة خيار جديد (مع comment افتراضي)
+          node.querySelector(".btn-add-option").onclick = () => {
+            if (q.options.length >= 6) {
+              alert("الحد الأقصى 6 خيارات");
+              return;
+            }
+
+            q.options.push({
+              text: "",
+              comment: "",
+              image: { url: "", data: "" },
+            });
+
+            renderOptions();
+            updateCorrectSelect(qCorrect, q);
+            status("غير محفوظ");
+          };
+
+          qCorrect.onchange = (e) => {
+            q.correct = Number(e.target.value || 0);
+            status("غير محفوظ");
+          };
+
+          // أزرار إدارة السؤال
+          node.querySelector(".btn-remove").onclick = () => {
+            state.quiz.splice(idx, 1);
+            renderQuiz();
+            status("غير محفوظ");
+          };
+
+          node.querySelector(".btn-move-up").onclick = () => {
+            if (idx > 0) {
+              const t = state.quiz[idx - 1];
+              state.quiz[idx - 1] = q;
+              state.quiz[idx] = t;
+              renderQuiz();
+              status("غير محفوظ");
+            }
+          };
+
+          node.querySelector(".btn-move-down").onclick = () => {
+            if (idx < state.quiz.length - 1) {
+              const t = state.quiz[idx + 1];
+              state.quiz[idx + 1] = q;
+              state.quiz[idx] = t;
+              renderQuiz();
+              status("غير محفوظ");
+            }
+          };
+
+          wrap.appendChild(node);
+        });
+      }
+
+      $("#btnAddQuestion").onclick = () => {
+        state.quiz.push({
+          text: "",
+          image: { url: "", data: "" },
+          options: [
+            { text: "", comment: "", image: { url: "", data: "" } },
+            { text: "", comment: "", image: { url: "", data: "" } },
+          ],
+          correct: 0,
+        });
+
+        renderQuiz();
+        status("غير محفوظ");
+      };
+
+      // تبويب
+      $$(".tab-sidebar").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          $$(".tab-sidebar").forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+
+          const id = tab.dataset.tab;
+          $$('section[role="tabpanel"]').forEach(
+            (sec) => (sec.hidden = sec.id !== `tab-${id}`)
+          );
+
+          // تحديث شريط التقدم عند التبديل بين التبويبات
+          updateProgress();
+        });
+      });
+
+      // تضمين الموارد عند التصدير
+      async function fetchToDataURL(url) {
+        try {
+          const res = await fetch(url, { mode: "cors" });
+          const blob = await res.blob();
+          return await fileToDataURL(blob);
+        } catch {
+          return null;
+        }
+      }
+
+      async function inlineProject(src) {
+        const data = JSON.parse(JSON.stringify(src));
+
+        // تغذية
+        for (const img of data.feedback.images || []) {
+          if (img.url && !img.data && !isDataUrl(img.url)) {
+            const d = await fetchToDataURL(img.url);
+            if (d) {
+              img.data = d;
+              img.url = "";
+            }
+          }
+        }
+
+        // تمارين
+        for (const ex of data.exercises || []) {
+          if (ex.image?.url && !ex.image.data && !isDataUrl(ex.image.url)) {
+            const d = await fetchToDataURL(ex.image.url);
+            if (d) {
+              ex.image.data = d;
+              ex.image.url = "";
+            }
+          }
+        }
+
+        // أسئلة وخيارات
+        for (const q of data.quiz || []) {
+          if (q.image?.url && !q.image.data && !isDataUrl(q.image.url)) {
+            const d = await fetchToDataURL(q.image.url);
+            if (d) {
+              q.image.data = d;
+              q.image.url = "";
+            }
+          }
+
+          for (const op of q.options || []) {
+            if (op.image?.url && !op.image.data && !isDataUrl(op.image.url)) {
+              const d = await fetchToDataURL(op.image.url);
+              if (d) {
+                op.image.data = d;
+                op.image.url = "";
+              }
+            }
+          }
+        }
+
+        // شعار
+        if (
+          data.branding?.logo?.url &&
+          !data.branding.logo.data &&
+          !isDataUrl(data.branding.logo.url)
+        ) {
+          const d = await fetchToDataURL(data.branding.logo.url);
+          if (d) {
+            data.branding.logo.data = d;
+            data.branding.logo.url = "";
+          }
+        }
+
+        return data;
+      }
+
+      const getImgSrc = (img) => img?.data || img?.url || "";
+
+      // توليد صفحة الطالب
+      function generateStudentHTMLSync(data) {
+        const { meta, feedback, exercises, quiz, design, footer, branding } =
+          data;
+        const dir = design.rtl ? "rtl" : "ltr";
+        const primary = design.primary || "#22c55e";
+        const font = design.font || "Segoe UI, Tahoma, Arial, sans-serif";
+
+        // شعار: مسار مرن (يدعم string أو object)
+        const logoSrc = (function () {
+          const l = branding?.logo;
+          if (!l) return "";
+          if (typeof l === "string") return l;
+          return getImgSrc(l) || l.url || "";
+        })();
+        const logoAlt = toArabicDigits(
+          escapeHtml(branding?.logo?.alt || "شعار")
+        );
+
+        // عناصر الاختبار
+        const quizItems = (quiz || [])
+          .map((q, qi) => {
+            const qImgSrc = getImgSrc(q.image || {});
+            const qImg = qImgSrc
+              ? '<img src="' +
+                qImgSrc +
+                '" alt="صورة السؤال" style="max-width:100%; border-radius:10px; border:1px solid #e5e7eb"/>'
+              : "";
+
+            const options = (q.options || [])
+              .slice(0, 6)
+              .map((op, oi) => {
+                const oSrc = getImgSrc(op.image || {});
+                const imgTag = oSrc
+                  ? '<img src="' +
+                    oSrc +
+                    '" alt="صورة الخيار" style="max-width:100%; max-height:120px; border-radius:8px; border:1px solid #e5e7eb; display:block; margin-top:6px"/>'
+                  : "";
+
+                return (
+                  '<button class="opt" data-qi="' +
+                  qi +
+                  '" data-oi="' +
+                  oi +
+                  '" data-comment="' +
+                  toArabicDigits(
+                    processDoubleBars(escapeHtml(op.comment || ""))
+                  ) +
+                  '" aria-pressed="false"><span class="letter">' +
+                  String.fromCharCode(0x0661 + oi) +
+                  '</span><span class="txt">' +
+                  toArabicDigits(processDoubleBars(escapeHtml(op.text || ""))) +
+                  "</span>" +
+                  imgTag +
+                  "</button>"
+                );
+              })
+              .join("");
+
+            return (
+              '<article class="q-item" data-correct="' +
+              Number(q.correct || 0) +
+              '"><div class="q-head"><b>سؤال ' +
+              toArabicDigits(qi + 1) +
+              ':</b></div><div class="q-text">' +
+              toArabicDigits(processDoubleBars(escapeHtml(q.text || ""))) +
+              "</div>" +
+              qImg +
+              '<div class="q-options" role="group" aria-label="خيارات السؤال">' +
+              options +
+              '</div><div class="q-feedback" hidden></div></article>'
+            );
+          })
+          .join("\n");
+
+        // @font-face إن وُجد خط مضمّن
+        const fontFace = design.fontData
+          ? "@font-face{font-family:'" +
+            escapeHtml(design.fontName || "CustomFont") +
+            "'; src:url(" +
+            design.fontData +
+            ") format('woff2'); font-display:swap}"
+          : "";
+
+        const usedFont = design.fontData
+          ? "'" + escapeHtml(design.fontName || "CustomFont") + "', " + font
+          : font;
+
+        const parts = [];
+        parts.push("<!doctype html>");
+        parts.push('<html lang="ar" dir="' + dir + '">');
+        parts.push("<head>");
+        parts.push('  <meta charset="utf-8" />');
+        parts.push(
+          '  <meta name="viewport" content="width=device-width,initial-scale=1" />'
+        );
+        parts.push(
+          "  <title>" +
+            toArabicDigits(escapeHtml(meta.title || "درس")) +
+            "</title>"
+        );
+        parts.push("  <style>");
+        parts.push("    " + fontFace);
+        parts.push(
+          "    :root{ --primary:" +
+            primary +
+            "; --radius:16px; --text:#0b1220; --muted:#334155; }"
+        );
+        parts.push(
+          "    body{font-family:" +
+            usedFont +
+            "; margin:0; background:#f8fafc; color:#0b1220;}"
+        );
+        parts.push("    :where(button,input,select,textarea){ font: inherit }");
+        parts.push("    .q-options .opt{ font: inherit }");
+
+        parts.push("    .shell{max-width:980px; margin:auto; padding:24px}");
+        parts.push(
+          "    header{position:sticky; top:0; background:linear-gradient(180deg,#fff, #f8fafc); border-bottom:1px solid #e5e7eb; z-index:10}"
+        );
+        parts.push(
+          "    .h-wrap{display:grid; grid-template-columns:1fr auto; align-items:center; gap:16px; padding:12px 24px}"
+        );
+        parts.push("    .hdr-right h1{margin:8px 0 12px}");
+        parts.push(
+          "    .logo{max-height:56px; width:auto; border:1px solid #e5e7eb; border-radius:8px; object-fit:contain; background:#fff; padding:4px; margin-inline-start:12px}"
+        );
+        parts.push(
+          "    .badge{background:#ecfeff; color:#155e75; border:1px solid #bae6fd; padding:2px 8px; border-radius:999px; font-size:12px}"
+        );
+        parts.push("    nav{display:flex; gap:8px; flex-wrap:wrap}");
+        parts.push(
+          "    nav a{padding:8px 12px; border-radius:999px; border:1px solid #e5e7eb; text-decoration:none; color:#111827}"
+        );
+        parts.push("    nav a:hover{border-color:var(--primary)}");
+        parts.push(
+          "    section{background:#fff; border:1px solid #e5e7eb; border-radius:var(--radius); padding:18px 18px; margin:16px 0}"
+        );
+        parts.push(
+          "    .section-sep{border:none; border-top:3px double #e5e7eb; margin:26px 0}"
+        );
+        parts.push(
+          "    .title{font-weight:800; font-size:20px; margin-bottom:12px}"
+        );
+        parts.push("    .objectives li{margin:6px 0}");
+        parts.push(
+          "    .ex{border:1px dashed #d1d5db; border-radius:12px; padding:12px; margin:10px 0}"
+        );
+        parts.push(
+          "    .ex .sol{background:#f1f5f9; border:1px solid #e5e7eb; border-radius:10px; padding:10px; margin-top:8px}"
+        );
+        parts.push(
+          "    .q-item{border:1px solid #e5e7eb; border-radius:12px; padding:12px; margin:12px 0}"
+        );
+        parts.push("    .q-head{margin-bottom:6px}");
+        parts.push("    .q-text{font-weight:700; margin-bottom:10px}");
+        parts.push(
+          "    p, .q-text, .q-options .txt, .ex .ex-prompt, .ex .sol, .objectives li, #result, .q-feedback{white-space:pre-wrap;}"
+        );
+        parts.push(
+          "    .q-options{display:grid; grid-template-columns:1fr 1fr; gap:8px}"
+        );
+        parts.push(
+          "    .q-options .opt{display:flex; gap:8px; align-items:flex-start; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:10px; cursor:pointer}"
+        );
+        parts.push(
+          '    .q-options .opt[aria-pressed="true"]{outline:2px solid var(--primary)}'
+        );
+        parts.push(
+          "    .q-options .letter{display:inline-flex; width:28px; height:28px; border-radius:8px; align-items:center; justify-content:center; background:#eef2ff}"
+        );
+        parts.push("    .q-feedback{margin-top:8px; font-weight:700}");
+        parts.push("    .ok{color:#15803d} .bad{color:#b91c1c}");
+        parts.push("    .actions{display:flex; gap:8px; flex-wrap:wrap}");
+        parts.push(
+          "    .btn{appearance:none; border:1px solid #e5e7eb; background:var(--primary); color:#fff; padding:10px 12px; border-radius:10px; cursor:pointer}"
+        );
+        parts.push("    .btn.secondary{background:#111827; color:#fff}");
+        parts.push("    .muted{color:#475569; font-size:12px}");
+        parts.push("    .video{ margin:10px 0 }");
+        parts.push(
+          "    .video-embed{ position:relative; padding-top:56.25%; background:#000; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden }"
+        );
+        parts.push("    #footer{ text-align:center }");
+        parts.push(
+          "    .video-embed iframe, .video-embed video{ position:absolute; inset:0; width:100%; height:100% }"
+        );
+        parts.push(
+          "    .q-text, .q-options .txt, #result { overflow-wrap:anywhere; word-break:break-word; }"
+        );
+        parts.push(
+          "    @media print { header, .actions, nav { display:none !important; } }"
+        );
+        parts.push("  </style>");
+        parts.push("</head>");
+        parts.push("<body>");
+
+        /* أقسام مشروطة */
+        const goalsList = (meta.objectives || "")
+          .split(/\n+/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const goalsHTML = goalsList.length
+          ? '    <section id="goals"><div class="title">أهداف التعلم</div><ul class="objectives">' +
+            goalsList
+              .map((x) => "<li>" + toArabicDigits(escapeHtml(x)) + "</li>")
+              .join("") +
+            '</ul><div class="muted">المدة المتوقعة: ' +
+            toArabicDigits(Number(meta.duration || 0)) +
+            " دقيقة</div></section>"
+          : "";
+
+        const videoHTML = buildVideoBlock(feedback.video);
+        const fbTextHTML = (feedback.text || "").trim()
+          ? paragraphs(toArabicDigits(feedback.text || ""))
+          : "";
+        const fbImgsHTML = (feedback.images || [])
+          .map((img) => {
+            const src = getImgSrc(img);
+            return src
+              ? '<figure style="margin:10px 0"><img src="' +
+                  src +
+                  '" alt="' +
+                  escapeHtml(img.alt || "صورة") +
+                  '" style="max-width:100%; border-radius:12px; border:1px solid #e5e7eb"><figcaption class="muted">' +
+                  toArabicDigits(escapeHtml(img.alt || "")) +
+                  "</figcaption></figure>"
+              : "";
+          })
+          .join("");
+
+        const fbInner = [
+          fbTextHTML,
+          videoHTML ? '<hr class="section-sep" />' + videoHTML : "",
+          fbImgsHTML,
+        ]
+          .filter(Boolean)
+          .join("");
+        const feedbackHTML = fbInner
+          ? '    <section id="feedback"><div class="title">تغذية راجعة</div>' +
+            fbInner +
+            "</section>"
+          : "";
+
+        const exItems = (exercises || [])
+          .map((ex, i) => {
+            const exImgSrc = getImgSrc(ex.image || {});
+            const exImg = exImgSrc
+              ? '<div style="margin:8px 0"><img src="' +
+                exImgSrc +
+                '" alt="صورة التمرين" style="max-width:100%; border:1px solid #e5e7eb; border-radius:10px"/></div>'
+              : "";
+            return (
+              '<article class="ex"><div class="ex-prompt"><b>تمرين ' +
+              toArabicDigits(i + 1) +
+              ":</b> " +
+              toArabicDigits(processDoubleBars(escapeHtml(ex.prompt || ""))) +
+              "</div>" +
+              exImg +
+              '<details class="sol"><summary>عرض الحل</summary><div>' +
+              toArabicDigits(processDoubleBars(escapeHtml(ex.solution || ""))) +
+              "</div></details></article>"
+            );
+          })
+          .join("");
+        const exercisesHTML =
+          exercises && exercises.length
+            ? '    <section id="exercises"><div class="title">تمارين تدريب ومحلولة</div>' +
+              exItems +
+              "</section>"
+            : "";
+
+        const quizHTML =
+          quiz && quiz.length
+            ? '    <section id="quiz"><div class="title">اختبار قصير</div><div id="quizWrap">' +
+              quizItems +
+              '</div><div class="actions"><button id="btnSubmit" class="btn">تصحيح</button><button id="btnReset" class="btn secondary">إعادة المحاولة</button><button id="btnCert" class="btn" style="display:none">شهادة إنجاز</button><div id="result" class="muted"></div></div></section>'
+            : "";
+
+        /* التذييل: محتوى فقط دون عنوان */
+        const footerHTML = (footer?.text || "").trim()
+          ? '    <section id="footer">' +
+            paragraphs(toArabicDigits(footer.text || "")) +
+            "</section>"
+          : "";
+
+        /* الروابط في الترويسة تظهر فقط للأقسام الموجودة (بما فيها الأهداف) */
+        const navLinks = [];
+        if (goalsHTML) navLinks.push('<a href="#goals">الأهداف</a>');
+        if (feedbackHTML) navLinks.push('<a href="#feedback">تغذية راجعة</a>');
+        if (exercisesHTML) navLinks.push('<a href="#exercises">تمارين</a>');
+        if (quizHTML) navLinks.push('<a href="#quiz">اختبار</a>');
+
+        /* الترويسة */
+        parts.push("  <header>");
+        parts.push('    <div class="h-wrap">');
+        parts.push('      <div class="hdr-right">');
+        parts.push(
+          '        <div class="badge">صفحة الطالب (مكتفية ذاتيًا)</div>'
+        );
+        parts.push(
+          '        <div class="muted">' +
+            toArabicDigits(escapeHtml(meta.subject || "")) +
+            "</div>"
+        );
+        parts.push(
+          "        <h1>" +
+            toArabicDigits(escapeHtml(meta.title || "درس")) +
+            "</h1>"
+        );
+        parts.push(
+          navLinks.length
+            ? '        <nav aria-label="التنقل السريع">' +
+                navLinks.join("") +
+                "</nav>"
+            : ""
+        );
+        parts.push("      </div>");
+        parts.push(
+          logoSrc
+            ? '<img class="logo" src="' + logoSrc + '" alt="' + logoAlt + '"/>'
+            : ""
+        );
+        parts.push("    </div>");
+        parts.push("  </header>");
+
+        /* الحاويات مع فواصل فقط إن كان هناك أكثر من قسم */
+        const sections = [
+          goalsHTML,
+          feedbackHTML,
+          exercisesHTML,
+          quizHTML,
+          footerHTML,
+        ].filter(Boolean);
+        parts.push('  <div class="shell">');
+        if (sections.length) {
+          parts.push(sections.join('\n    <hr class="section-sep" />\n'));
+        }
+        parts.push("  </div>");
+
+        parts.push("  <script>");
+        parts.push(
+          "    const TEACHER_NAME = " +
+            JSON.stringify(footer?.teacher || "") +
+            ";"
+        );
+        parts.push(
+          '    function toArabicDigits(x){ return String(x).replace(/\\d/g, d => "٠١٢٣٤٥٦٧٨٩"[d]); }'
+        );
+
+        // زر الشهادة (نافذة PDF)
+        parts.push(
+          "    function openCertificate(){" +
+            '      var student = prompt("أدخل الاسم الثلاثي للطالب/ـة:"); if(!student) return; student = student.trim();' + //
+            '      var DIR = document.documentElement.getAttribute("dir") || "rtl";' +
+            '      var PRIMARY = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#22c55e";' +
+            '      var FONT = getComputedStyle(document.body).fontFamily || "Segoe UI, Tahoma, Arial, sans-serif";' +
+            '      var logoEl = document.querySelector(".logo"); var logo = (logoEl && logoEl.getAttribute("src")) || "";' +
+            '      var subject = (document.querySelector(".hdr-right .muted")||{}).textContent || "";' +
+            '      var title = (document.querySelector(".hdr-right h1")||{}).textContent || "";' +
+            '      var resultTxt = (document.getElementById("result")||{}).textContent || "";' +
+            '      function esc(s){ return String(s).replace(/[&<>\\"]/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[ch]||ch;}); }' +
+            '      var html="";' +
+            '      html += "<!doctype html>";' +
+            '      html += "<html lang=\\"ar\\" dir=\\"" + DIR + "\\">";' +
+            '      html += "<head><meta charset=\\"utf-8\\"><meta name=\\"viewport\\" content=\\"width=device-width,initial-scale=1\\">";' +
+            '      html += "<title>شهادة إنجاز</title>";' +
+            '      html += "<style>@page{size:A4; margin:12mm} :root{--primary:" + PRIMARY + ";--radius:16px;--text:#0b1220;--muted:#475569} body{font-family:" + FONT + ";margin:0;color:#0b1220;background:#fff;line-height:1.5} .shell{max-width:900px;margin:auto;padding:8mm} @media print{.shell{padding:0}} .head3{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px} .head3 .center{font-weight:900;font-size:20px;text-align:center} h1{font-size:16px;margin:6px 0 0;text-align:center} .logo{max-height:48px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;padding:3px;justify-self:start;margin-left:6mm} .subject{justify-self:end} .section-sep{border:none;border-top:2px solid #e5e7eb;margin:14px 0} section{break-inside:avoid;page-break-inside:avoid} .completion-notice{text-align:center;padding:40px 20px;margin:20px 0;border-radius:var(--radius);background-color:#f8fafc;border:2px dashed #d1d5db} .completion-notice .icon{font-size:64px;line-height:1} .completion-notice .text{font-size:24px;font-weight:bold;color:var(--text);margin:16px 0} .completion-notice .score{font-size:18px;color:var(--muted)} .sign-row{display:flex;justify-content:space-between;margin-top:12px} .muted{color:#475569;font-size:12px}</style>";' +
+            '      html += "</head><body><div class=\\"shell\\">";' +
+            '      html += "<div class=\\"head3\\">" + (logo? "<img class=\\"logo\\" src=\\"" + esc(logo) + "\\" alt=\\"شعار\\"/>" : "<div class=\\"logo\\"></div>") + "<div class=\\"center\\">شهادة إنجاز طالب / طالبة</div><div class=\\"subject muted\\">" + esc(subject) + "</div></div>";' +
+            '      html += "<h1>" + esc(title) + "</h1>";' +
+            '      html += "<hr class=\\"section-sep\\">";' +
+            '      html += "<section class=\\"completion-notice\\"><div class=\\"icon\\">🏆</div><div class=\\"text\\">تم إنجاز الاختبار بنجاح</div><div class=\\"score\\">" + esc(resultTxt) + "</div></section>";' +
+            '      html += "<hr class=\\"section-sep\\">";' +
+            '      html += "<section><div class=\\"sign-row\\"><div><b>اسم الطالب/ـة:</b> " + esc(student) + "</div><div><b>اسم المعلم/ـة:</b> " + esc(TEACHER_NAME) + "</div></div></section>";' +
+            '      html += "<div class=\\"print-hint muted\\">اختر \\"حفظ كملف PDF\\" من نافذة الطباعة.</div>";' +
+            '      html += "</div><script>window.print()<" + "/script></body></html>";' +
+            '      var w = window.open("", "_blank"); if(!w || !w.document){ alert("لم أستطع فتح نافذة الشهادة. عطّل حاجب النوافذ المنبثقة مؤقتًا ثم أعد المحاولة."); return; } w.document.open(); w.document.write(html); w.document.close();' +
+            "    }"
+        );
+
+        // اختيار الخيار بالوفد (delegation)
+        parts.push(
+          '    document.addEventListener("click", function(e){ var btn=e.target.closest(".opt"); if(!btn||!btn.closest("#quizWrap")) return; var group=btn.parentElement.querySelectorAll(".opt"); group.forEach(function(b){ b.setAttribute("aria-pressed","false"); }); btn.setAttribute("aria-pressed","true"); });'
+        );
+
+        // التصحيح وإظهار زر الشهادة عند الدرجة الكاملة
+        parts.push(
+          '    function grade(){ const items = Array.from(document.querySelectorAll(".q-item")); var correct=0, answered=0; items.forEach((item)=>{ const sel = item.querySelector(".opt[aria-pressed=\\"true\\"]"); const fb = item.querySelector(".q-feedback"); fb.hidden=false; if(!sel){ fb.textContent="اختر إجابة"; fb.className="q-feedback bad"; return } answered++; const oi = Number(sel.dataset.oi||0); const ci = Number(item.dataset.correct||0); const cm = sel.dataset.comment || ""; if(oi===ci){ correct++; fb.textContent="إجابة صحيحة ✓" + (cm ? " (" + cm + ")" : ""); fb.className="q-feedback ok" } else { fb.textContent="إجابة غير صحيحة ✗" + (cm ? " (" + cm + ")" : ""); fb.className="q-feedback bad" } }); var pct = items.length? Math.round((correct/items.length)*100):0; var resEl=document.getElementById("result"); if(resEl){ resEl.textContent = "نتيجتك: " + toArabicDigits(correct) + " / " + toArabicDigits(items.length) + " ("+ toArabicDigits(pct) +"%)" + (answered<items.length? " — (" + toArabicDigits(items.length-answered) + " أسئلة غير مجاب عنها)" : ""); } var cert=document.getElementById("btnCert"); if(cert) cert.style.display = (correct===items.length && items.length>0) ? "inline-flex" : "none"; }'
+        );
+
+        // إعادة المحاولة
+        parts.push(
+          '    function resetQuiz(){ document.querySelectorAll(".opt[aria-pressed=\\"true\\"]").forEach(b=>b.setAttribute("aria-pressed","false")); document.querySelectorAll(".q-feedback").forEach(f=>{f.hidden=true; f.textContent=""}); var res=document.getElementById("result"); if(res) res.textContent=""; var cert=document.getElementById("btnCert"); if(cert) cert.style.display="none"; }'
+        );
+
+        // ربط الأزرار بشرط وجودها (منع أخطاء null)
+        parts.push(
+          '    (function(){ var s=document.getElementById("btnSubmit"); if(s) s.addEventListener("click", grade); var r=document.getElementById("btnReset"); if(r) r.addEventListener("click", resetQuiz); var c=document.getElementById("btnCert"); if(c) c.addEventListener("click", openCertificate); })();'
+        );
+
+        parts.push(
+          '    window.addEventListener("beforeprint", ()=>{ document.querySelectorAll("details.sol").forEach(d=> d.open=true); });'
+        );
+        parts.push("  <" + "/script>");
+        parts.push("</body>");
+        parts.push("</html>");
+
+        return parts.join("\n");
+
+        // تضمين الفيديو
+        function buildVideoBlock(v) {
+          if (!v) return "";
+          const urlRaw = (v.url || "").trim();
+          const urlEsc = escapeHtml(urlRaw);
+
+          if (v.mode !== "embed") {
+            return urlRaw
+              ? '<p><a href="' +
+                  urlEsc +
+                  '" target="_blank" rel="noopener">رابط شرح فيديو</a></p>'
+              : "";
+          }
+
+          if (!urlRaw) return "";
+
+          // YouTube
+          let m = urlRaw.match(
+            /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/i
+          );
+          if (m) {
+            const id = m[1];
+            return (
+              '<div class="video"><div class="video-embed">' +
+              '<iframe src="https://www.youtube-nocookie.com/embed/' +
+              id +
+              '" title="YouTube video" frameborder="0" ' +
+              'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ' +
+              'allowfullscreen loading="lazy"></iframe></div>' +
+              '<div class="muted">إن لم يظهر الفيديو، <a href="' +
+              urlEsc +
+              '" target="_blank" rel="noopener">افتحه هنا</a></div></div>'
+            );
+          }
+
+          // Vimeo
+          m = urlRaw.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+          if (m) {
+            const id = m[1];
+            return (
+              '<div class="video"><div class="video-embed">' +
+              '<iframe src="https://player.vimeo.com/video/' +
+              id +
+              '" frameborder="0" ' +
+              'allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>' +
+              '<div class="muted">إن لم يظهر الفيديو، <a href="' +
+              urlEsc +
+              '" target="_blank" rel="noopener">افتحه هنا</a></div></div>'
+            );
+          }
+
+          // ملفات فيديو مباشرة
+          if (
+            /\.(mp4|webm|ogg)(\?.*)?$/i.test(urlRaw) ||
+            urlRaw.startsWith("data:video")
+          ) {
+            const type = urlRaw.endsWith(".webm")
+              ? "video/webm"
+              : urlRaw.endsWith(".ogg")
+              ? "video/ogg"
+              : "video/mp4";
+            return (
+              '<div class="video"><div class="video-embed">' +
+              '<video controls preload="metadata"><source src="' +
+              urlEsc +
+              '" type="' +
+              type +
+              '">' +
+              'متصفحك لا يدعم تشغيل الفيديو. <a href="' +
+              urlEsc +
+              '" target="_blank" rel="noopener">افتح الفيديو</a></video></div></div>'
+            );
+          }
+
+          // تضمين عام
+          return (
+            '<div class="video"><div class="video-embed">' +
+            '<iframe src="' +
+            urlEsc +
+            '" frameborder="0" allowfullscreen loading="lazy"></iframe></div>' +
+            '<div class="muted">قد يرفض الموقع التضمين. استخدم <a href="' +
+            urlEsc +
+            '" target="_blank" rel="noopener">الرابط المباشر</a> إن لزم.</div></div>'
+          );
+        }
+      }
+
+      // توليد/معاينة
+      async function exportStudent(kind) {
+        const inlined = await inlineProject(state);
+        const html = generateStudentHTMLSync(inlined);
+        const blob = new Blob([html], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+
+        if (kind === "download") {
+          const a = document.createElement("a");
+          a.href = url;
+          a.download =
+            (state.meta.title
+              ? state.meta.title.replace(/\s+/g, "-")
+              : "lesson") + ".html";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } else {
+          window.open(url, "_blank");
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+        }
+      }
+
+      // JSON & أزرار عامة
+      $("#btnExportHTML").onclick = () => exportStudent("download");
+      $("#btnPreview").onclick = () => exportStudent("preview");
+      $("#btnExportHTML2").onclick = () => exportStudent("download");
+      $("#btnPreview2").onclick = () => exportStudent("preview");
+
+      $("#btnExportJSON").onclick = () => {
+        const data = JSON.stringify(state, null, 2);
+        const blob = new Blob([data], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = (state.meta.title || "project") + ".json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      };
+
+      $("#btnImportJSON").onclick = () => $("#importFile").click();
+
+      $("#importFile").addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const text = await file.text();
+        try {
+          const obj = JSON.parse(text);
+          migrateProject(obj);
+          state = obj;
+          renderAll();
+          status("تم الاستيراد", true);
+        } catch (err) {
+          alert("تعذر قراءة الملف: " + err.message);
+        }
+      });
+
+      // مشاريع
+      $("#btnNew").onclick = () => {
+        if (
+          state.meta.title ||
+          state.exercises.length > 0 ||
+          state.quiz.length > 0
+        ) {
+          if (
+            !confirm(
+              "هل تريد إنشاء مشروع جديد؟ سيتم فقدان التغييرات غير المحفوظة."
+            )
+          ) {
+            return;
+          }
+        }
+
+        state = emptyState();
+        renderAll();
+        status("مشروع جديد (غير محفوظ)");
+      };
+
+      $("#btnSave").onclick = saveToLocal;
+
+      $("#btnLoad").onclick = () => {
+        const id = $("#selProjects").value;
+        if (id) loadFromLocal(id);
+      };
+
+      $("#btnDelete").onclick = () => {
+        const id = $("#selProjects").value;
+        if (!id) return;
+
+        if (confirm("حذف المشروع نهائيًا؟")) {
+          deleteFromLocal(id);
+          if (state.id === id) {
+            state = emptyState();
+            renderAll();
+          }
+        }
+      };
+
+      $("#btnDuplicate").onclick = duplicateProject;
+
+      // رفع الخط
+      $("#fontFile").addEventListener("change", async (e) => {
+        const f = e.target.files?.[0];
+        if (!f) return;
+
+        state.design.fontData = await new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.onerror = rej;
+          r.readAsDataURL(f);
+        });
+
+        state.design.fontName = $("#fontName").value || "CustomFont";
+        status("غير محفوظ");
+        $("#fontStatus").textContent = "خط مضمّن";
+      });
+
+      // شعار: ربط الحقول
+      function renderBrandLogoControls() {
+        const wrap = $("#brandLogoWrap");
+        const url = wrap.querySelector(".logo-url");
+        const file = wrap.querySelector(".logo-file");
+        const pz = wrap.querySelector(".logo-paste");
+        const prev = wrap.querySelector(".logo-preview");
+        let clrBtn = wrap.querySelector(".btn-logo-clear");
+        if (!clrBtn) {
+          clrBtn = document.createElement("button");
+          clrBtn.className = "danger btn-logo-clear";
+          clrBtn.textContent = "حذف الصورة";
+          clrBtn.style.marginTop = "6px";
+          prev.insertAdjacentElement("afterend", clrBtn);
+        }
+        const alt = wrap.querySelector(".logo-alt");
+
+        const logo =
+          state.branding.logo ||
+          (state.branding.logo = { url: "", data: "", alt: "" });
+        alt.value = logo.alt || "";
+
+        alt.oninput = (e) => {
+          logo.alt = e.target.value;
+          status("غير محفوظ");
+        };
+
+        const refresh = () => {
+          prev.src = logo.data || logo.url || "";
+        };
+
+        url.value = logo.url || "";
+        url.oninput = (e) => {
+          logo.url = e.target.value;
+          logo.data = "";
+          refresh();
+          status("غير محفوظ");
+        };
+
+        file.onchange = async (e) => {
+          const f = e.target.files?.[0];
+          if (!f) return;
+
+          logo.data = await fileToDataURL(f);
+          logo.url = "";
+          refresh();
+          status("غير محفوظ");
+        };
+
+        pz.addEventListener("paste", async (e) => {
+          const items = e.clipboardData?.items || [];
+          for (const it of items) {
+            if (it.type?.startsWith("image/")) {
+              const f = it.getAsFile();
+              if (f) {
+                logo.data = await fileToDataURL(f);
+                logo.url = "";
+                refresh();
+                status("غير محفوظ");
+                break;
+              }
+            }
+          }
+        });
+
+        if (clrBtn) {
+          clrBtn.onclick = () => {
+            logo.data = "";
+            logo.url = "";
+            url.value = "";
+            try {
+              file.value = "";
+            } catch {}
+            refresh(); // Clear preview
+            status("غير محفوظ");
+          };
+        }
+
+        refresh();
+      }
+
+      // تحديث شريط التقدم
+      function updateProgress() {
+        let progress = 0;
+        const totalSections = 6; // عدد الأقسام الرئيسية
+
+        // البيانات العامة
+        if (state.meta.title) progress += 10;
+        if (state.meta.subject) progress += 5;
+        if (state.meta.duration) progress += 5;
+        if (state.meta.objectives) progress += 5;
+
+        // التغذية الراجعة
+        if (state.feedback.text) progress += 10;
+        if (state.feedback.images.length > 0) progress += 5;
+
+        // التمارين
+        if (state.exercises.length > 0) {
+          progress += 15;
+          state.exercises.forEach((ex) => {
+            if (ex.prompt && ex.solution) progress += 2;
+          });
+        }
+
+        // الأسئلة
+        if (state.quiz.length > 0) {
+          progress += 15;
+          state.quiz.forEach((q) => {
+            if (q.text && q.options.length >= 2) progress += 2;
+          });
+        }
+
+        // التذييل والشعار
+        if (state.footer.text) progress += 5;
+        if (state.branding.logo.data || state.branding.logo.url) progress += 5;
+
+        // التصميم
+        if (state.design.primary !== "#22c55e") progress += 5;
+
+        // الحد الأقصى للتقدم
+        progress = Math.min(progress, 100);
+
+        // تحديث واجهة المستخدم
+        $("#progressFill").style.width = `${progress}%`;
+        $("#progressPercent").textContent = `${progress}%`;
+      }
+
+      // تشغيل أولي
+      function renderAll() {
+        bindInputs();
+        renderFeedbackImages();
+        renderExercises();
+        renderQuiz();
+
+        document.documentElement.style.setProperty(
+          "--primary",
+          state.design.primary
+        );
+        document.body.style.fontFamily = state.design.font;
+        document.documentElement.setAttribute(
+          "dir",
+          state.design.rtl ? "rtl" : "ltr"
+        );
+
+        populateProjects();
+        updateProgress();
+      }
+
+      // تهيئة التطبيق
+      document.addEventListener("DOMContentLoaded", () => {
+        renderAll();
+
+        // تحميل آخر مشروع تم فتحه إن وجد
+        const lastProjectId = localStorage.getItem("last_project");
+        if (lastProjectId) {
+          loadFromLocal(lastProjectId);
+        }
+
+        // حفظ المشروع الحالي عند مغادرة الصفحة
+        window.addEventListener("beforeunload", (e) => {
+          if ($("#status").textContent.includes("غير محفوظ")) {
+            e.preventDefault();
+            e.returnValue =
+              "يوجد تغييرات غير محفوظة. هل تريد المغادرة دون حفظ؟";
+            return e.returnValue;
+          }
+        });
+
+        // حفظ معرف المشروع الحالي
+        if (state.id) {
+          localStorage.setItem("last_project", state.id);
+        }
+      });
+    </script>
+  </body>
+</html>
